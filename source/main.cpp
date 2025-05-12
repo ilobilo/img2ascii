@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     }
 
     int w, h, n;
-    const auto img = reinterpret_cast<std::uint8_t *>(stbi_load(file.c_str(), &w, &h, &n, 3));
+    const auto img = reinterpret_cast<std::uint8_t *>(stbi_load(file.c_str(), &w, &h, &n, 4));
     if (img == nullptr)
     {
         std::println(stderr, "could not load image");
@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     struct pixel { std::uint8_t r, g, b, lum; };
     auto average = [&](std::size_t startx, std::size_t starty) -> pixel
     {
+        std::size_t alphas = 0;
         std::size_t reds = 0;
         std::size_t greens = 0;
         std::size_t blues = 0;
@@ -65,10 +66,12 @@ int main(int argc, char *argv[])
         {
             for (std::size_t x = startx; x < std::min(startx + chunkw, static_cast<std::size_t>(w)); x++)
             {
-                std::size_t idx = (y * w + x) * 3;
+                std::size_t idx = (y * w + x) * n;
                 reds += img[idx];
                 greens += img[idx + 1];
                 blues += img[idx + 2];
+                if (n == 4)
+                    alphas += img[idx + 3];
                 npixels++;
             }
         }
@@ -76,8 +79,11 @@ int main(int argc, char *argv[])
         reds /= npixels;
         greens /= npixels;
         blues /= npixels;
+        if (n == 4)
+            alphas /= npixels;
 
-        const auto lum = (0.2126 * reds + 0.7152 * greens + 0.0722 * blues);
+        const auto val = (0.2126 * reds + 0.7152 * greens + 0.0722 * blues);
+        const std::uint8_t lum = n == 4 ? alphas ? val : 0 : val;
         return {
             static_cast<std::uint8_t>(reds),
             static_cast<std::uint8_t>(greens),
