@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <filesystem>
+#include <fcntl.h>
 
 #include <ncurses.h>
 #include <sys/ioctl.h>
@@ -35,12 +36,26 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    const char *term = ctermid(NULL);
+    if (!term[0])
+    {
+        std::println(stderr, "can't get the name of my controlling terminal");
+        return 1;
+    }
+    const int fd = open(term, O_RDONLY);
+    if (fd == -1)
+    {
+        std::println(stderr, "can't open my terminal", term);
+        return 1;
+    }
+
     winsize win;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &win))
+    if (ioctl(fd, TIOCGWINSZ, &win))
     {
         std::println(stderr, "could not get terminal size");
         return 1;
     }
+    close(fd);
 
     int w, h, n;
     const auto img = reinterpret_cast<std::uint8_t *>(stbi_load(file.c_str(), &w, &h, &n, 4));
@@ -50,12 +65,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto chunkw = (w + (win.ws_col - 1)) / win.ws_col;
-    auto chunkh = (h + (win.ws_row - 1)) / win.ws_row;
-    if (chunkw > chunkh)
-        chunkh = chunkw * h / w;
-    else if (chunkh > chunkw)
-        chunkw = chunkh * w / h;
+    const auto chunkw = (w + (win.ws_col - 1)) / win.ws_col;
+    const auto chunkh = (h + (win.ws_row - 1)) / win.ws_row;
 
     struct pixel { std::uint8_t r, g, b, lum; };
     auto average = [&](std::size_t startx, std::size_t starty) -> pixel
