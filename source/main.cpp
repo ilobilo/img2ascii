@@ -50,8 +50,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const auto chunkw = (w + (win.ws_col - 1)) / win.ws_col;
-    const auto chunkh = (h + (win.ws_row - 1)) / win.ws_row;
+    auto chunkw = (w + (win.ws_col - 1)) / win.ws_col;
+    auto chunkh = (h + (win.ws_row - 1)) / win.ws_row;
+    if (chunkw > chunkh)
+        chunkh = chunkw * h / w;
+    else if (chunkh > chunkw)
+        chunkw = chunkh * w / h;
 
     struct pixel { std::uint8_t r, g, b, lum; };
     auto average = [&](std::size_t startx, std::size_t starty) -> pixel
