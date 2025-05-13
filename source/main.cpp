@@ -64,9 +64,8 @@ int main(int argc, char *argv[])
         std::println(stderr, "could not load image");
         return 1;
     }
+    bool has_transparency = n == 4;
 
-    const auto chunkw = (w + (win.ws_col - 1)) / win.ws_col;
-    const auto chunkh = (h + (win.ws_row - 1)) / win.ws_row;
 
     struct pixel { std::uint8_t r, g, b, lum; };
     auto average = [&](std::size_t startx, std::size_t starty) -> pixel
@@ -81,11 +80,11 @@ int main(int argc, char *argv[])
         {
             for (std::size_t x = startx; x < std::min(startx + chunkw, static_cast<std::size_t>(w)); x++)
             {
-                std::size_t idx = (y * w + x) * n;
+                std::size_t idx = (y * w + x) * 4;
                 reds += img[idx];
                 greens += img[idx + 1];
                 blues += img[idx + 2];
-                if (n == 4)
+                if (has_transparency)
                     alphas += img[idx + 3];
                 npixels++;
             }
@@ -94,11 +93,11 @@ int main(int argc, char *argv[])
         reds /= npixels;
         greens /= npixels;
         blues /= npixels;
-        if (n == 4)
-            alphas /= npixels;
+        if (has_transparency)
+            alphas = (alphas + (npixels - 1)) / npixels;
 
         const auto val = (0.2126 * reds + 0.7152 * greens + 0.0722 * blues);
-        const std::uint8_t lum = n == 4 ? alphas ? val : 0 : val;
+        const std::uint8_t lum = has_transparency ? (alphas ? val : 0) : val;
         return {
             static_cast<std::uint8_t>(reds),
             static_cast<std::uint8_t>(greens),
