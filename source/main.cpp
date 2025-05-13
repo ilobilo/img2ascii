@@ -82,7 +82,6 @@ int main(int argc, char *argv[])
     const std::size_t chunkw = ((static_cast<double>(w) + ((nw * font_ratio_wh) - 1)) / (nw * font_ratio_wh));
     const std::size_t chunkh = ((static_cast<double>(h) + (nh - 1)) / nh);
 
-
     struct pixel { std::uint8_t r, g, b, lum; };
     auto average = [&](std::size_t startx, std::size_t starty) -> pixel
     {
