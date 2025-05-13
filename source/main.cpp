@@ -15,6 +15,8 @@
 
 namespace fs = std::filesystem;
 
+constexpr double font_ratio_wh = 2.;
+
 constexpr char map(std::uint8_t brightness, std::uint8_t min, std::uint8_t max)
 {
     constexpr char ascii[] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
@@ -65,6 +67,20 @@ int main(int argc, char *argv[])
         return 1;
     }
     bool has_transparency = n == 4;
+
+    const auto image_ratio = static_cast<double>(w) / h;
+    const auto screen_ratio = (static_cast<double>(win.ws_col) / font_ratio_wh) / win.ws_row;
+
+    double nw = (static_cast<double>(win.ws_col) / font_ratio_wh);
+    double nh = win.ws_row;
+
+    if (image_ratio > screen_ratio)
+        nh = (static_cast<double>(h) * (win.ws_col / font_ratio_wh)) / w;
+    else
+        nw = (static_cast<double>(w) * win.ws_row) / h;
+
+    const std::size_t chunkw = ((static_cast<double>(w) + ((nw * font_ratio_wh) - 1)) / (nw * font_ratio_wh));
+    const std::size_t chunkh = ((static_cast<double>(h) + (nh - 1)) / nh);
 
 
     struct pixel { std::uint8_t r, g, b, lum; };
