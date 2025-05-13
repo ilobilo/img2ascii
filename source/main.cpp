@@ -68,19 +68,18 @@ int main(int argc, char *argv[])
     }
     bool has_transparency = n == 4;
 
-    const auto image_ratio = static_cast<double>(w) / h;
-    const auto screen_ratio = (static_cast<double>(win.ws_col) / font_ratio_wh) / win.ws_row;
+    const double dw = w, dh = h, dc = win.ws_col, dr = win.ws_row;
 
-    double nw = (static_cast<double>(win.ws_col) / font_ratio_wh);
-    double nh = win.ws_row;
+    double nw = (dc / font_ratio_wh);
+    double nh = dr;
 
-    if (image_ratio > screen_ratio)
-        nh = (static_cast<double>(h) * (win.ws_col / font_ratio_wh)) / w;
+    if ((dw / dh) > ((dc / font_ratio_wh) / dr))
+        nh = (dh * (dc / font_ratio_wh)) / dw;
     else
-        nw = (static_cast<double>(w) * win.ws_row) / h;
+        nw = (dw * dr) / dh;
 
-    const std::size_t chunkw = ((static_cast<double>(w) + ((nw * font_ratio_wh) - 1)) / (nw * font_ratio_wh));
-    const std::size_t chunkh = ((static_cast<double>(h) + (nh - 1)) / nh);
+    const std::size_t chunkw = ((dw + ((nw * font_ratio_wh) - 1)) / (nw * font_ratio_wh));
+    const std::size_t chunkh = ((dh + (nh - 1)) / nh);
 
     struct pixel { std::uint8_t r, g, b, lum; };
     auto average = [&](std::size_t startx, std::size_t starty) -> pixel
