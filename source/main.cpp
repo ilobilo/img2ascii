@@ -20,7 +20,9 @@ constexpr double font_ratio_wh = 2.;
 constexpr char map(std::uint8_t brightness, std::uint8_t min, std::uint8_t max)
 {
     constexpr char ascii[] = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
-    return ascii[(brightness - min) * (sizeof(ascii) - 1) / (max - min)];
+    if (max <= min)
+        return ascii[0];
+    return ascii[(brightness - min) * (sizeof(ascii) - 2) / (max - min)];
 }
 
 int main(int argc, char *argv[])
@@ -107,6 +109,7 @@ int main(int argc, char *argv[])
         reds /= npixels;
         greens /= npixels;
         blues /= npixels;
+
         if (has_transparency)
             alphas = (alphas + (npixels - 1)) / npixels;
 
